@@ -3,10 +3,10 @@
 layout(vertices = 4) out;
 uniform int defaultTessLevel;
 uniform int maxTessLevel;
-uniform vec4 cameraVector;
-uniform float gridSizeMax;
 uniform int slopeDistance;
+uniform float gridSizeMax;
 uniform sampler2D heightMap;
+uniform vec4 cameraVector;
 
 float sampleDistance(float x, float z, float x2, float z2) {
 	return abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) / slopeDistance;
