@@ -1,0 +1,61 @@
+#version 400
+
+layout(vertices = 4) out;
+uniform int defaultTessLevel;
+uniform int maxTessLevel;
+uniform vec4 cameraVector;
+uniform float gridSizeMax;
+uniform int slopeDistance;
+uniform sampler2D heightMap;
+
+float sampleDistance(float x, float z, float x2, float z2) {
+	return abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) / slopeDistance;
+}
+
+
+void main()
+{
+	float tessLevel = defaultTessLevel;
+
+	float distance = abs(distance(gl_in[gl_InvocationID].gl_Position, cameraVector)); 
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+
+	tessLevel = defaultTessLevel;
+	//tessLevel = ((distance - 0) * 1.5 / ((2 * gridSizeMax / 3) - 0)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
+
+	vec4 position = gl_in[gl_InvocationID].gl_Position;
+
+	if (position.x > slopeDistance && position.x < gridSizeMax - slopeDistance && position.z < -slopeDistance && position.z > -gridSizeMax + slopeDistance)
+	{
+		float backIndex = position.x - slopeDistance;
+		float forwardIndex = position.x + slopeDistance;
+		float rightIndex = position.z - slopeDistance;
+		float leftIndex = position.z + slopeDistance;
+
+		float multiplier = max(sampleDistance(position.x, position.z, backIndex, position.z), sampleDistance(position.x, position.z, forwardIndex, position.z));
+		multiplier = max(sampleDistance(position.x, position.z, position.x, leftIndex), multiplier);
+		multiplier = max(sampleDistance(position.x, position.z, position.x, rightIndex), multiplier);
+
+		if (multiplier > 0) {
+			tessLevel = 10;
+		}
+		else {
+			tessLevel = 1;
+		}
+		if (multiplier < 0) {
+			tessLevel = 10;
+		}
+		//multiplier = max(1, multiplier * maxTessLevel);
+
+		//tessLevel = tessLevel * multiplier;
+	}
+
+	tessLevel = min(maxTessLevel, max(defaultTessLevel, tessLevel));
+
+	gl_TessLevelOuter[0] = tessLevel;
+	gl_TessLevelOuter[1] = tessLevel;
+	gl_TessLevelOuter[2] = tessLevel;
+	gl_TessLevelOuter[3] = tessLevel;
+	gl_TessLevelInner[0] = tessLevel;
+	gl_TessLevelInner[1] = tessLevel;
+}

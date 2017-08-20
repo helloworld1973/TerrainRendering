@@ -1,0 +1,39 @@
+#version 400
+layout(quads, equal_spacing, ccw) in;
+
+uniform sampler2D heightMap;
+uniform float gridSizeMax;
+uniform int heightScale;
+
+vec4 posn;
+
+void main() {
+	float u = gl_TessCoord.x;
+	float v = gl_TessCoord.y;
+	posn = (1 - u) * (1 - v) * gl_in[0].gl_Position
+		 +      u  * (1 - v) * gl_in[1].gl_Position
+		 +      u  *      v  * gl_in[2].gl_Position
+		 + (1 - u) *      v  * gl_in[3].gl_Position;
+
+	float x = posn.x / gridSizeMax; 
+	float z = posn.z / gridSizeMax; 
+ 
+
+	if (x <= 0.0) {
+		x = 0.01;
+	}
+	if (x >= gridSizeMax) {
+		x = gridSizeMax - 0.01;
+	}
+	if (z >= 0.0) {
+		z = -0.01;
+	}
+	if (z <= -gridSizeMax) {
+		z = - gridSizeMax + 0.01;
+	}
+	
+	vec4 height = texture(heightMap, vec2(x, z));
+	posn.y = height.r * heightScale;
+	gl_Position = posn;
+
+}

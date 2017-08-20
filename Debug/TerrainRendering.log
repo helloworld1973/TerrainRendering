@@ -1,0 +1,4 @@
+﻿  TerrainDraw.cpp
+d:\vs2015projects\terrainrendering\terrainrendering\terraindraw.cpp(147): warning C4244: “参数”: 从“const int”转换到“GLfloat”，可能丢失数据
+  TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.exe
+  TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.pdb (Full PDB)
