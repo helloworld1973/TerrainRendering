@@ -20,9 +20,8 @@ void main()
 
 	vec4 diffuseVec = vec4(diffuse, diffuse, diffuse, 1);
 
-	if (wireframe == 1) 
-	{
-		FragColor = vec4(1, 1, 1, 1) * diffuseVec;
+	if (wireframe == 1) {
+		FragColor = vec4(0, 1, 0, 1) * diffuseVec;
 		return;//wireframe model 
 	}
 	

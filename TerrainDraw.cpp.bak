@@ -17,7 +17,7 @@ GLuint heightMap;
 Camera camera;
 
 const int DEFAULT_TESS_LEVEL = 1;
-const int MAX_TESS_LEVEL = 5;//by experience
+const int MAX_TESS_LEVEL = 5;
 const int SLOPE_POINT_LOOK_AHEAD = 4;
 const int HEIGHT_SCALE = 12;//by experience
 const int GRID_SIZE = 128; 

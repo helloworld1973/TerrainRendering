@@ -28,7 +28,7 @@ Camera::Camera()
 	//  windowHeight = glutGet(GLenum(GLUT_WINDOW_Y)); 
 	windowWidth = 1000;
 	windowHeight = 1000;
-	pos = { 64, 20, -64 };
+	pos = { 64, 20, -64};
 	mouseLock = true;
 	wireframe = true;
 

@@ -18,7 +18,7 @@ void main() {
 	float x = posn.x / gridSizeMax; 
 	float z = posn.z / gridSizeMax; //normalize (0,0) to (1,1)
 	
-  float heightValue = texture(heightMap, vec2(x, z)).r;//range 0 to 1
+  float heightValue = texture(heightMap, vec2(x, z)).r;
 	posn.y = heightValue * heightScale;
 	gl_Position = posn;//get vertexes' y value(height value) and set them to vertexies
 

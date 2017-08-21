@@ -20,7 +20,7 @@ void main()
 	float distance = abs(distance(gl_in[gl_InvocationID].gl_Position, cameraVector));//the distance between point A and B
 
 	float distanceMin= 20-heightLoc;//20-12=8
-	float distanceMax=gridSizeMax;//sqrt(2*(gridSizeMax)*(gridSizeMax)+cameraVector[1]*cameraVector[1]); ; 
+	float distanceMax=sqrt(2*(gridSizeMax)*(gridSizeMax)+cameraVector[1]*cameraVector[1]); ; 
 	
 	tessLevel = ((distance - distanceMin) / (distanceMax-distanceMin)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
 	//tessLevel =((distance - 0) * 1.5 / ((2 * gridSizeMax / 3) - 0)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
