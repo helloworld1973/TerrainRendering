@@ -4,26 +4,63 @@ layout(vertices = 4) out;
 
 uniform int defaultTessLevel;
 uniform int maxTessLevel;
-//uniform int slopeDistance;
+uniform int slopeDistance;
 uniform int heightLoc;
 uniform float gridSizeMax;
 uniform sampler2D heightMap;
 uniform vec4 cameraVector;
 
 
+float distanceTL(float distance)
+{
+	float distanceMin= 20-heightLoc;//20-12=8
+	float distanceMax=gridSizeMax;//sqrt(2*(gridSizeMax)*(gridSizeMax)+cameraVector[1]*cameraVector[1]); ; 	
+	float tessLevel = ((distance - distanceMin) / (distanceMax-distanceMin)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
+	return tessLevel;
+}
+
+float sampleDistance(float x, float z, float x2, float z2) 
+{
+	return abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) / slopeDistance;
+	//use texture() to sample the texture's color, first parameter is sampler,second parameter is texture coordinate
+	//.rgba    .r means red color(height value)
+}
+float slopeTL(vec4 currentPosition)
+{
+	  vec4 position=currentPosition;
+		if (position.x > slopeDistance && position.x < gridSizeMax - slopeDistance && position.z < -slopeDistance && position.z > -gridSizeMax + slopeDistance)
+	{
+		float backIndex = position.x - slopeDistance;
+		float forwardIndex = position.x + slopeDistance;
+		float rightIndex = position.z - slopeDistance;
+		float leftIndex = position.z + slopeDistance;
+
+		float multiplier = max(sampleDistance(position.x, position.z, backIndex, position.z), sampleDistance(position.x, position.z, forwardIndex, position.z));
+		multiplier = max(sampleDistance(position.x, position.z, position.x, leftIndex), multiplier);
+		multiplier = max(sampleDistance(position.x, position.z, position.x, rightIndex), multiplier);
+		multiplier = multiplier * maxTessLevel;
+
+		return multiplier;
+	}	
+}
+
+
 void main()
 {
-	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;//pass through patches  gl_InvocationID=0,1,2,3
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;//pass through patches 
 	
 	float tessLevel = defaultTessLevel;
 
+  //TL distance
 	float distance = abs(distance(gl_in[gl_InvocationID].gl_Position, cameraVector));//the distance between point A and B
+  float TlDiatance = distanceTL(distance);
 
-	float distanceMin= 20-heightLoc;//20-12=8
-	float distanceMax=sqrt(2*(gridSizeMax)*(gridSizeMax)+cameraVector[1]*cameraVector[1]); ; 
-	
-	tessLevel = ((distance - distanceMin) / (distanceMax-distanceMin)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
-	//tessLevel =((distance - 0) * 1.5 / ((2 * gridSizeMax / 3) - 0)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
+  //TL slope
+  vec4 position = gl_in[gl_InvocationID].gl_Position;
+  float TlSlope = slopeTL(position);
+
+  tessLevel=0.5*TlDiatance+0.5*TlSlope;
+
 
 	gl_TessLevelOuter[0] = tessLevel;
 	gl_TessLevelOuter[1] = tessLevel;
@@ -32,4 +69,6 @@ void main()
 	gl_TessLevelInner[0] = tessLevel;
 	gl_TessLevelInner[1] = tessLevel;
 }
+
+
 
