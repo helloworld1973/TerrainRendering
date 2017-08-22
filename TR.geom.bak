@@ -10,7 +10,7 @@ uniform vec4 cameraCoordinate;
 out float diffLight;
 out float specularLight;
 out vec2 textureCoord;
-out vec4 textureWeight;
+out vec4 texWeight;
 
 void main()
 {
@@ -31,7 +31,7 @@ void main()
 		//different heightValue has different geologies
 		if (position.y == 2.5) 
 		{
-			textureWeight = vec4(1, 0, 0, 0);
+			texWeight = vec4(1, 0, 0, 0);
 
 			//water regions has specular Light
 			float specularStrength = 1;
@@ -42,7 +42,7 @@ void main()
 		}
 		else if (position.y < 5.5) 
 		{
-			textureWeight = vec4(0, 1, 0, 0);
+			texWeight = vec4(0, 1, 0, 0);
 		}
 		else if (position.y < 6.0)
 		{
@@ -50,11 +50,11 @@ void main()
 			float point = position.y - 5.5;
 			float percentageRock = point / period;
 			float percentageGrass = 1 - percentageRock;
-			textureWeight = vec4(0, percentageGrass, percentageRock, 0);
+			texWeight = vec4(0, percentageGrass, percentageRock, 0);
 		}
 		else if (position.y < 10.0) 
 		{
-			textureWeight = vec4(0, 0, 1, 0);
+			texWeight = vec4(0, 0, 1, 0);
 		}
 		else if (position.y < 10.5)
 		{
@@ -62,11 +62,11 @@ void main()
 			float point = position.y - 10.0;
 			float percentageSnow = point / period;
 			float percentageRock = 1 - percentageSnow;
-			textureWeight = vec4(0, 0, percentageRock, percentageSnow);
+			texWeight = vec4(0, 0, percentageRock, percentageSnow);
 		}
 		else 
 		{
-			textureWeight = vec4(0, 0, 0, 1);
+			texWeight = vec4(0, 0, 0, 1);
 		}
 
 		gl_Position = mvpMatrix * position;

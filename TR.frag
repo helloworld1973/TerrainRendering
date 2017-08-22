@@ -6,19 +6,20 @@ uniform sampler2D rock;
 uniform sampler2D snow;
 uniform int wireframe;
 
-in float diffuse;
-in vec2 texCoord;
-in vec4 texWeight;
+in float diffLight;
+in float specularLight;
+in vec2 textureCoord;
+in vec4 textureWeight;
 out vec4 FragColor;
 
 void main() 
 {
-	vec4 texWater = texture(water, texCoord);
-	vec4 texGrass = texture(grass, texCoord);
-	vec4 texRock = texture(rock, texCoord);
-	vec4 texSnow = texture(snow, texCoord);
+	vec4 texWater = texture(water, textureCoord);
+	vec4 texGrass = texture(grass, textureCoord);
+	vec4 texRock = texture(rock, textureCoord);
+	vec4 texSnow = texture(snow, textureCoord);
 
-	vec4 diffuseVec = vec4(diffuse, diffuse, diffuse, 1);
+	vec4 diffuseVec = vec4(diffLight, diffLight, diffLight, 1);
 
 	if (wireframe == 1) 
 	{
@@ -26,5 +27,7 @@ void main()
 		return;//wireframe model 
 	}
 	
-	FragColor = (texWater * texWeight.x + texGrass * texWeight.y + texRock * texWeight.z + texSnow * texWeight.w) * diffuse;//texture model
+	FragColor = (texWater * textureWeight.x*(vec4(1, 0, 0, 1)*specularLight)) //specular Light
+	          + (texWater * textureWeight.x+texGrass * textureWeight.y + texRock * textureWeight.z + texSnow * textureWeight.w) * diffLight*vec4(1, 1, 0.92, 0.6);//diffuse Light
+            //texture model
 }

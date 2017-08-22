@@ -2,45 +2,46 @@
 
 layout(vertices = 4) out;
 
-uniform int defaultTessLevel;
+uniform int minTessLevel;
 uniform int maxTessLevel;
-uniform int slopeDistance;
-uniform int heightLoc;
-uniform float gridSizeMax;
+uniform int vertexBufferStride;
+uniform int heightScale;
+uniform float gridSize;
 uniform sampler2D heightMap;
-uniform vec4 cameraVector;
+uniform vec4 cameraCoordinate;
 
 
 float distanceTL(float distance)
 {
-	float distanceMin= 20-heightLoc;//20-12=8
-	float distanceMax=gridSizeMax;//sqrt(2*(gridSizeMax)*(gridSizeMax)+cameraVector[1]*cameraVector[1]); ; 	
-	float tessLevel = ((distance - distanceMin) / (distanceMax-distanceMin)) * (defaultTessLevel - maxTessLevel) + maxTessLevel;
+	float distanceMin= 20-heightScale;//20-12=8
+	float distanceMax=gridSize;//sqrt(2*(gridSize)*(gridSize)+cameraCoordinate[1]*cameraCoordinate[1]); ; 	
+	float tessLevel = ((distance - distanceMin) / (distanceMax-distanceMin)) * (minTessLevel - maxTessLevel) + maxTessLevel;
 	return tessLevel;
-}
+}//algorithm 1 using the distance from camera vector to a patch 
 
-float sampleDistance(float x, float z, float x2, float z2) 
+float slopeDifferentValue(float x, float z, float x2, float z2) 
 {
-	return abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) / slopeDistance;
+	float differentValue=abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) ;
+	return differentValue;
 	//use texture() to sample the texture's color, first parameter is sampler,second parameter is texture coordinate
 	//.rgba    .r means red color(height value)
 }
-float slopeTL(vec4 currentPosition)
+float slopeTL(vec4 currentPositionPoint)
 {
-	  vec4 position=currentPosition;
-		if (position.x > slopeDistance && position.x < gridSizeMax - slopeDistance && position.z < -slopeDistance && position.z > -gridSizeMax + slopeDistance)
+	  vec4 currentPosition=currentPositionPoint;
+		if (currentPosition.x > vertexBufferStride && currentPosition.x < gridSize - vertexBufferStride && currentPosition.z < -vertexBufferStride && currentPosition.z > -gridSize + vertexBufferStride)
 	{
-		float backIndex = position.x - slopeDistance;
-		float forwardIndex = position.x + slopeDistance;
-		float rightIndex = position.z - slopeDistance;
-		float leftIndex = position.z + slopeDistance;
+		float upPosition = currentPosition.x - vertexBufferStride;
+		float downPosition = currentPosition.x + vertexBufferStride;
+		float rightPosition = currentPosition.z - vertexBufferStride;
+		float leftPosition = currentPosition.z + vertexBufferStride;
 
-		float multiplier = max(sampleDistance(position.x, position.z, backIndex, position.z), sampleDistance(position.x, position.z, forwardIndex, position.z));
-		multiplier = max(sampleDistance(position.x, position.z, position.x, leftIndex), multiplier);
-		multiplier = max(sampleDistance(position.x, position.z, position.x, rightIndex), multiplier);
-		multiplier = multiplier * maxTessLevel;
+		float maxDifferentValue = max(slopeDifferentValue(currentPosition.x, currentPosition.z, upPosition, currentPosition.z), slopeDifferentValue(currentPosition.x, currentPosition.z, downPosition, currentPosition.z));
+		maxDifferentValue = max(slopeDifferentValue(currentPosition.x, currentPosition.z, currentPosition.x, rightPosition), maxDifferentValue);
+		maxDifferentValue = max(slopeDifferentValue(currentPosition.x, currentPosition.z, currentPosition.x, leftPosition), maxDifferentValue);
+		maxDifferentValue = maxDifferentValue * maxTessLevel;
 
-		return multiplier;
+		return maxDifferentValue;
 	}	
 }
 
@@ -49,17 +50,17 @@ void main()
 {
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;//pass through patches 
 	
-	float tessLevel = defaultTessLevel;
+	float tessLevel = minTessLevel;
 
   //TL distance
-	float distance = abs(distance(gl_in[gl_InvocationID].gl_Position, cameraVector));//the distance between point A and B
+	float distance = abs(distance(gl_in[gl_InvocationID].gl_Position, cameraCoordinate));//the distance between point A and B
   float TlDiatance = distanceTL(distance);
 
   //TL slope
-  vec4 position = gl_in[gl_InvocationID].gl_Position;//get current vertex
-  float TlSlope = slopeTL(position);
+  vec4 currentPosition = gl_in[gl_InvocationID].gl_Position;//get current vertex
+  float TlSlope = slopeTL(currentPosition);
 
-  tessLevel=0.5*TlDiatance+0.5*TlSlope;
+  tessLevel=0.5*TlDiatance+0.5*TlSlope;// weight combination
 
 
 	gl_TessLevelOuter[0] = tessLevel;

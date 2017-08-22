@@ -1,28 +1,28 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include "Tools.h"
 #include "Camera.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 using namespace std;
 
-GLuint vaoID;
-GLuint matrixLoc;
-GLuint cameraLoc;
-GLuint wireFrameLoc;
-GLuint heightMap;
-Camera camera;
-
-const int DEFAULT_TESS_LEVEL = 1;
-const int MAX_TESS_LEVEL = 5;
-const int SLOPE_POINT_LOOK_AHEAD = 4;
+const int MIN_TESS_LEVEL = 1;
+const int MAX_TESS_LEVEL = 5;//by experience
+const int VERTEX_BUFFER_STRIDE = 4;//vertex buffer xyzw
 const int HEIGHT_SCALE = 12;//by experience
 const int GRID_SIZE = 128; 
 const int VERTEX_COMPONENTS = 3;
 const int QUAD_COMPONENTS = 4;
+
+//global variables
+GLuint vaoID;
+GLuint matrixLoc;
+GLuint cameraCoordinate;
+GLuint wireFrameLoc;
+GLuint heightMap;
+Camera camera;
 
 float verts[GRID_SIZE * GRID_SIZE * VERTEX_COMPONENTS];
 GLushort elems[GRID_SIZE * GRID_SIZE * QUAD_COMPONENTS];
@@ -145,35 +145,35 @@ void initialise()
 	//some uniform variables can set value right now,because they are not change during rendering process
 	matrixLoc = glGetUniformLocation(program, "mvpMatrix");
 	//uniform variable in vertex shader
-	GLuint dtl = glGetUniformLocation(program, "defaultTessLevel");
-	glUniform1i(dtl, DEFAULT_TESS_LEVEL);
-	GLuint mtl = glGetUniformLocation(program, "maxTessLevel");
-	glUniform1i(mtl, MAX_TESS_LEVEL);
-	GLuint slopePointLoc = glGetUniformLocation(program, "slopeDistance");
-	glUniform1i(slopePointLoc, SLOPE_POINT_LOOK_AHEAD);// Tessilation levels
-	GLuint gridMax = glGetUniformLocation(program, "gridSizeMax");
-	glUniform1f(gridMax, GRID_SIZE);
+	GLuint minTessLevel = glGetUniformLocation(program, "minTessLevel");
+	glUniform1i(minTessLevel, MIN_TESS_LEVEL);
+	GLuint maxTessLevel = glGetUniformLocation(program, "maxTessLevel");
+	glUniform1i(maxTessLevel, MAX_TESS_LEVEL);
+	GLuint vertexBufferStride = glGetUniformLocation(program, "vertexBufferStride");
+	glUniform1i(vertexBufferStride, VERTEX_BUFFER_STRIDE);// Tessilation levels
+	GLuint gridSize = glGetUniformLocation(program, "gridSize");
+	glUniform1f(gridSize, GRID_SIZE);
 	loadTextures();// load textures for heightMap,water,grass,rock,snow
-	GLuint texLoc = glGetUniformLocation(program, "heightMap");
-	glUniform1i(texLoc, 0);//assign a value 0 to the variable texLoc to specify that it should use the texture from unit 0.
-	cameraLoc = glGetUniformLocation(program, "cameraVector");
+	GLuint textureLocation = glGetUniformLocation(program, "heightMap");
+	glUniform1i(textureLocation, 0);//assign a value 0 to the variable textureLocation to specify that it should use the texture from unit 0.
+	cameraCoordinate = glGetUniformLocation(program, "cameraCoordinate");
     //uniform variable in TCS shader
-	GLuint heightLoc = glGetUniformLocation(program, "heightScale");
-	glUniform1i(heightLoc, HEIGHT_SCALE);// Height modifier
+	GLuint heightScale = glGetUniformLocation(program, "heightScale");
+	glUniform1i(heightScale, HEIGHT_SCALE);// Height modifier
 	//uniform variable in TES shader
-	glm::vec3 light = glm::vec3(GRID_SIZE / 2, 1000.0, GRID_SIZE / 2);
-	GLuint lightloc = glGetUniformLocation(program, "lightPos");
-	glUniform3fv(lightloc, 1, &light[0]);// Lighting
+	glm::vec3 lightCoordinate = glm::vec3(0 , 30.0, 0 );
+	GLuint lightCoord = glGetUniformLocation(program, "lightCoord");
+	glUniform3fv(lightCoord, 1, &lightCoordinate[0]);// Lighting Coordinate
 	//uniform variable in geometry shader
 	wireFrameLoc = glGetUniformLocation(program, "wireframe");
-	texLoc = glGetUniformLocation(program, "water");
-	glUniform1i(texLoc, 1);
-	texLoc = glGetUniformLocation(program, "grass");
-	glUniform1i(texLoc, 2);
-	texLoc = glGetUniformLocation(program, "rock");
-	glUniform1i(texLoc, 3);
-	texLoc = glGetUniformLocation(program, "snow");
-	glUniform1i(texLoc, 4);
+	textureLocation = glGetUniformLocation(program, "water");
+	glUniform1i(textureLocation, 1);
+	textureLocation = glGetUniformLocation(program, "grass");
+	glUniform1i(textureLocation, 2);
+	textureLocation = glGetUniformLocation(program, "rock");
+	glUniform1i(textureLocation, 3);
+	textureLocation = glGetUniformLocation(program, "snow");
+	glUniform1i(textureLocation, 4);
 	//uniform variable in fragment shader
 
 
@@ -210,7 +210,7 @@ void display()
 
 	//set camera position
 	glm::vec4 cameraPos = glm::vec4(camera.getPosition(), 0);
-	glUniform4fv(cameraLoc, 1, &cameraPos[0]);
+	glUniform4fv(cameraCoordinate, 1, &cameraPos[0]);
 
 	//set wireframe mode
 	int wireframeInt = 0;
