@@ -1,9 +1,4 @@
 ﻿  Camera.cpp
 d:\vs2015projects\terrainrendering\terrainrendering\camera.cpp(6): warning C4305: “初始化”: 从“double”到“float”截断
-  正在生成代码...
-  正在编译...
-  TerrainDraw.cpp
-d:\vs2015projects\terrainrendering\terrainrendering\terraindraw.cpp(244): warning C4244: “参数”: 从“const int”转换到“GLfloat”，可能丢失数据
-  正在生成代码...
   TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.exe
   TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.pdb (Full PDB)

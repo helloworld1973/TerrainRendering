@@ -3,29 +3,19 @@
 #include <GL/freeglut_std.h> 
 
 float Camera::moveSpeed = 2;
-float Camera::mouseSense = 0.0001;
-bool* keyStates = new bool[100];
-float Camera::theta = 0.0f;
-float Camera::alpha = 3.14f;
-float Camera::fov = 70.0f;
+float Camera::mouseSense = 0.000008;
+static bool* keyStates = new bool[100];
+float Camera::theta = -0.785f;
+float Camera::alpha = 2.355f;
+float Camera::fieldOfView = 70.0f;
 int Camera::windowWidth = 1000;
 int Camera::windowHeight = 1000;
 bool Camera::mouseLock = true;
+bool Camera::wireframe = true;
 
 Camera::Camera()
 {
-	glutGetWindow();
-	projMatrix = glm::perspective(float(glm::radians(20.0)), 1.0f, 10.0f, 1000.0f);
-	// The vertical Field of View// Aspect Ratio // Near clipping plane//Far clipping plane
-	cameraPosition = {0, 35, 0};
-	
-	mouseLock = true;
-	wireframe = true;
-}
-glm::mat4 Camera::initApply()//MVP Matrix
-{
-	viewMatrix=lookAt(cameraPosition, cameraPosition + initLookAt, cameraUp);
-	return projMatrix * viewMatrix;
+ cameraPosition = {0, 35, 0};
 }
 
 glm::mat4 Camera::apply()//MVP Matrix
@@ -65,7 +55,7 @@ glm::mat4 Camera::apply()//MVP Matrix
 
 	glm::mat4 modelMatrix = glm::mat4(1.0);//model Matrix (unit matrix) just pass through from local space to world space  
 	viewMatrix = lookAt(cameraPosition, cameraPosition + cameraFront(), cameraUp);
-  projMatrix = glm::perspective(float(glm::radians(fov)), 1.0f, 10.0f, 1000.0f);
+  projMatrix = glm::perspective(float(glm::radians(fieldOfView)), 1.0f, 10.0f, 1000.0f);
 
 	return projMatrix * viewMatrix * modelMatrix;
 	
@@ -116,15 +106,9 @@ void Camera::moveRight()
 //WSAD supplementary
 glm::vec3 Camera::cameraFront() 
 {
-	  return glm::vec3(cos(theta) * sin(alpha),
-		sin(theta),
-		cos(theta) * cos(alpha));
+	  return glm::vec3(cos(theta) * sin(alpha),sin(theta),cos(theta) * cos(alpha));
 }
 glm::vec3 Camera::right() 
 {
-	return glm::vec3(
-		sin(alpha - 3.14f / 2.0f),
-		0,
-		cos(alpha - 3.14f / 2.0f)
-	);
+	return glm::vec3(sin(alpha - 3.14f / 2.0f),0,cos(alpha - 3.14f / 2.0f));
 }

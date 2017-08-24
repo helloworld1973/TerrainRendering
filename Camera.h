@@ -5,17 +5,17 @@ class Camera
 public:
 	 static float moveSpeed;
 	 static float mouseSense;
-	 bool wireframe;
-	 static float fov;
+	 static float fieldOfView;
 	 static int windowWidth;
 	 static int windowHeight;
 	 static bool mouseLock;
+	 static bool wireframe;
 	 static float theta;
 	 static float alpha;
 	 
 	 Camera();
 	 glm::mat4 initApply();
-	 glm::mat4 apply();
+	 glm::mat4 updateMVPMatrix();
 	 glm::vec3 getCameraPosition();	
 	 bool getWireFrameMode();
 	
@@ -31,7 +31,6 @@ public:
 	 glm::vec3 right();
 
 	 glm::vec3 cameraPosition;
-	 glm::vec3 initLookAt={128/2,0,-128/2};
 	 glm::mat4 projMatrix;
 	 glm::mat4 viewMatrix;
 	 glm::vec3 cameraUp = { 0, 1, 0 };

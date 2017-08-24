@@ -232,7 +232,6 @@ void initialise()
 //3.get the uniform variables of all the shaders(glGetUniformLocation),in order to set value in it(glUniform)
 	//some uniform variables can set value right now,because they are not change during rendering process
 	mvpMatrix = glGetUniformLocation(program, "mvpMatrix");
-	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.initApply()[0][0]);
 	//uniform variable in vertex shader
 	GLuint minTessLevel = glGetUniformLocation(program, "minTessLevel");
 	glUniform1i(minTessLevel, MIN_TESS_LEVEL);
@@ -270,7 +269,7 @@ void initialise()
 	camera = Camera();
 	glutKeyboardFunc(Camera::keyPress);
 	glutKeyboardUpFunc(Camera::keyLoosen);
-	glutPassiveMotionFunc(Camera::mouseMove);//set the motion and passive motion callbacks respectively for the current window
+	glutPassiveMotionFunc(Camera::mouseMove);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -289,11 +288,11 @@ void update(int value)
 void display()
 {
 	//set mvp matrix
-	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.apply()[0][0]);
+	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.updateMVPMatrix()[0][0]);
 
 	//set camera position
-	glm::vec4 cameraPos = glm::vec4(camera.getCameraPosition(), 0);
-	glUniform4fv(cameraCoordinate, 1, &cameraPos[0]);
+	//glm::vec4 cameraPos = glm::vec4(camera.getCameraPosition(), 0);
+	//glUniform4fv(cameraCoordinate, 1, &cameraPos[0]);
 
 	//set wireframe mode
 	int wireframeFlag = 0;

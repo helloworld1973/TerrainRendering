@@ -19,7 +19,7 @@ const int QUAD_COMPONENTS = 4;//must
 GLuint vaoID;
 GLuint mvpMatrix;
 GLuint cameraCoordinate;
-GLuint wireFrameLoc;
+GLuint wireFrame;
 Camera camera;
 
 float verts[GRID_SIZE * GRID_SIZE * VERTEX_COMPONENTS];
@@ -232,7 +232,6 @@ void initialise()
 //3.get the uniform variables of all the shaders(glGetUniformLocation),in order to set value in it(glUniform)
 	//some uniform variables can set value right now,because they are not change during rendering process
 	mvpMatrix = glGetUniformLocation(program, "mvpMatrix");
-	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.initApply()[0][0]);
 	//uniform variable in vertex shader
 	GLuint minTessLevel = glGetUniformLocation(program, "minTessLevel");
 	glUniform1i(minTessLevel, MIN_TESS_LEVEL);
@@ -254,7 +253,7 @@ void initialise()
 	GLuint lightCoord = glGetUniformLocation(program, "lightCoord");
 	glUniform3fv(lightCoord, 1, &lightCoordinate[0]);// Lighting Coordinate
 	//uniform variable in geometry shader
-	wireFrameLoc = glGetUniformLocation(program, "wireframe");
+	wireFrame = glGetUniformLocation(program, "wireframe");
 	textureLocation = glGetUniformLocation(program, "water");
 	glUniform1i(textureLocation, 1);
 	textureLocation = glGetUniformLocation(program, "grass");
@@ -289,25 +288,25 @@ void update(int value)
 void display()
 {
 	//set mvp matrix
-	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.apply()[0][0]);
+	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.updateMVPMatrix()[0][0]);
 
 	//set camera position
 	glm::vec4 cameraPos = glm::vec4(camera.getCameraPosition(), 0);
 	glUniform4fv(cameraCoordinate, 1, &cameraPos[0]);
 
 	//set wireframe mode
-	int wireframeFlag = 0;
+	int wireFrameFlag = 0;
 	if (camera.getWireFrameMode())
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		wireframeFlag = 1;
+		wireFrameFlag = 1;
 	}
 	else
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		wireframeFlag = 0;
+		wireFrameFlag = 0;
 	}
-	glUniform1i(wireFrameLoc, wireframeFlag);
+	glUniform1i(wireFrame, wireFrameFlag);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(vaoID);//invoke VAO
