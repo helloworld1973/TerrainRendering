@@ -10,7 +10,6 @@ float Camera::alpha = 2.355f;
 float Camera::fieldOfView = 70.0f;
 int Camera::windowWidth = 1000;
 int Camera::windowHeight = 1000;
-bool Camera::mouseLock = true;
 bool Camera::wireframe = true;
 
 Camera::Camera()
@@ -35,14 +34,6 @@ glm::mat4 Camera::updateMVPMatrix()//MVP Matrix
 	if (keyStates['d'])
 	{
 		moveRight();
-	}
-	if (keyStates['o'])
-	{
-		mouseLock = true;
-	}
-	if (keyStates['p'])
-	{
-		mouseLock = false;
 	}
 	if (keyStates['c'])
 	{
@@ -80,10 +71,8 @@ void Camera::keyLoosen(unsigned char key, int x, int y)
 }
 void Camera::mouseMove(int x, int y)
 {
-	if (mouseLock) {
 		alpha += mouseSense * float(windowWidth / 2 - x);
 		theta += mouseSense * float(windowHeight / 2 - y);
-	}
 }
 
 // W S A D

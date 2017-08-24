@@ -8,13 +8,11 @@ public:
 	 static float fieldOfView;
 	 static int windowWidth;
 	 static int windowHeight;
-	 static bool mouseLock;
 	 static bool wireframe;
 	 static float theta;
 	 static float alpha;
 	 
 	 Camera();
-	 glm::mat4 initApply();
 	 glm::mat4 updateMVPMatrix();
 	 glm::vec3 getCameraPosition();	
 	 bool getWireFrameMode();
