@@ -4,7 +4,7 @@
 
 float Camera::moveSpeed = 2;
 float Camera::mouseSense = 0.0001;
-static bool* keyStates = new bool[100];
+bool* keyStates = new bool[100];
 float Camera::theta = 0.0f;
 float Camera::alpha = 3.14f;
 float Camera::fov = 70.0f;

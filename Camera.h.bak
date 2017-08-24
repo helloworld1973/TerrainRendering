@@ -5,7 +5,7 @@ class Camera
 public:
 	 static float moveSpeed;
 	 static float mouseSense;
-	 bool wireframe;
+	 static bool wireframe;
 	 static float fov;
 	 static int windowWidth;
 	 static int windowHeight;

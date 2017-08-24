@@ -38,7 +38,7 @@ void main()
 			vec3 viewVec=normalize(cameraCoordinate.xyz-position.xyz);
 			vec3 reflectVec = reflect(lightVec, vecNormal);
 			float spec = pow(max(dot(viewVec, reflectVec), 0.0), 2);
-      specularLight = specularStrength * spec;
+            specularLight = specularStrength * spec;
 		}
 		else if (position.y < 5.5) 
 		{

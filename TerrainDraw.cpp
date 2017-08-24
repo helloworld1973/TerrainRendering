@@ -1,27 +1,25 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
-#include "Tools.h"
 #include "Camera.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 using namespace std;
 
-const int MIN_TESS_LEVEL = 1;
+const int MIN_TESS_LEVEL = 1;//by experience
 const int MAX_TESS_LEVEL = 5;//by experience
 const int VERTEX_BUFFER_STRIDE = 4;//vertex buffer xyzw
 const int HEIGHT_SCALE = 12;//by experience
-const int GRID_SIZE = 128; 
-const int VERTEX_COMPONENTS = 3;
-const int QUAD_COMPONENTS = 4;
+const int GRID_SIZE = 128; //by experience
+const int VERTEX_COMPONENTS = 3;//must
+const int QUAD_COMPONENTS = 4;//must
 
 //global variables
 GLuint vaoID;
-GLuint matrixLoc;
+GLuint mvpMatrix;
 GLuint cameraCoordinate;
 GLuint wireFrameLoc;
-GLuint heightMap;
 Camera camera;
 
 float verts[GRID_SIZE * GRID_SIZE * VERTEX_COMPONENTS];
@@ -51,13 +49,76 @@ void generateGrid()//generate vertices and indicies
 	}
 }
 
+void loadTGA(string filename)
+{
+	char id, cmap, imgtype, bpp, c_garb;
+	char* imageData, temp;
+	short int s_garb, wid, hgt;
+	int nbytes, size, indx;
+	ifstream file(filename.c_str(), ios::in | ios::binary);
+	if (!file)
+	{
+		cout << "*** Error opening image file: " << filename.c_str() << endl;
+		exit(1);
+	}
+	file.read(&id, 1);
+	file.read(&cmap, 1);
+	file.read(&imgtype, 1);
+	if (imgtype != 2 && imgtype != 3)   //2= colour (uncompressed),  3 = greyscale (uncompressed) 
+	{
+		cout << "*** Incompatible image type: " << (int)imgtype << endl;
+		exit(1);
+	}
+	//Color map specification 
+	file.read((char*)&s_garb, 2);
+	file.read((char*)&s_garb, 2);
+	file.read(&c_garb, 1);
+	//Image specification 
+	file.read((char*)&s_garb, 2);  //x origin 
+	file.read((char*)&s_garb, 2);  //y origin 
+	file.read((char*)&wid, 2);     //image width                     
+	file.read((char*)&hgt, 2);     //image height 
+	file.read(&bpp, 1);     //bits per pixel 
+	file.read(&c_garb, 1);  //img descriptor 
+	nbytes = bpp / 8;           //No. of bytes per pixels 
+	size = wid * hgt * nbytes;  //Total number of bytes to be read 
+	imageData = new char[size];
+	file.read(imageData, size);
+	//cout << ">>>" << nbytes << " " << wid << " " << hgt << endl; 
+	if (nbytes > 2)   //swap R and B 
+	{
+		for (int i = 0; i < wid*hgt; i++)
+		{
+			indx = i*nbytes;
+			temp = imageData[indx];
+			imageData[indx] = imageData[indx + 2];
+			imageData[indx + 2] = temp;
+		}
+	}
+
+	switch (nbytes)
+	{
+	case 1:
+		glTexImage2D(GL_TEXTURE_2D, 0, 1, wid, hgt, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, imageData);
+		break;
+	case 3:
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, wid, hgt, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+		break;
+	case 4:
+		glTexImage2D(GL_TEXTURE_2D, 0, 4, wid, hgt, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+		break;
+	}
+
+	delete imageData;
+}
 
 void loadTextures()
 {
+	GLuint heightMap;
 	glGenTextures(1, &heightMap);   //Generate 1 texture ID 
 	glActiveTexture(GL_TEXTURE0);  //Texture unit 0 
 	glBindTexture(GL_TEXTURE_2D, heightMap);
-	Tools::loadTGA("HeightMap.tga");  // Load heightMap 
+	loadTGA("HeightMap.tga");  // Load heightMap 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//Mipmap,Texture Filtering
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -65,7 +126,7 @@ void loadTextures()
 	glGenTextures(1, &texWater);
 	glActiveTexture(GL_TEXTURE1);  //Texture unit 1 
 	glBindTexture(GL_TEXTURE_2D, texWater);
-	Tools::loadTGA("water.tga"); // water
+	loadTGA("water.tga"); // water
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -73,7 +134,7 @@ void loadTextures()
 	glGenTextures(1, &texGrass);
 	glActiveTexture(GL_TEXTURE2);  //Texture unit 1 
 	glBindTexture(GL_TEXTURE_2D, texGrass);
-	Tools::loadTGA("grass.tga"); // grass
+	loadTGA("grass.tga"); // grass
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -81,7 +142,7 @@ void loadTextures()
 	glGenTextures(1, &texRock);
 	glActiveTexture(GL_TEXTURE3);  //Texture unit 1 
 	glBindTexture(GL_TEXTURE_2D, texRock);
-	Tools::loadTGA("rock.tga"); // rock
+	loadTGA("rock.tga"); // rock
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -89,11 +150,38 @@ void loadTextures()
 	glGenTextures(1, &texSnow);
 	glActiveTexture(GL_TEXTURE4);  //Texture unit 1 
 	glBindTexture(GL_TEXTURE_2D, texSnow);
-	Tools::loadTGA("snow.tga"); // snow
+	loadTGA("snow.tga"); // snow
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
+GLuint loadShader(GLenum shaderType, string filename)
+{
+	ifstream shaderFile(filename.c_str());
+	if (!shaderFile.good()) cout << "Error opening shader file." << endl;
+	stringstream shaderData;
+	shaderData << shaderFile.rdbuf();
+	shaderFile.close();
+	string shaderStr = shaderData.str();
+	const char* shaderTxt = shaderStr.c_str();
+
+	GLuint shader = glCreateShader(shaderType);
+	glShaderSource(shader, 1, &shaderTxt, NULL);
+	glCompileShader(shader);
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	if (status == GL_FALSE)
+	{
+		GLint infoLogLength;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
+		GLchar *strInfoLog = new GLchar[infoLogLength + 1];
+		glGetShaderInfoLog(shader, infoLogLength, NULL, strInfoLog);
+		const char *strShaderType = NULL;
+		std::cerr << "Compile failure in shader: " << strInfoLog << endl;
+		delete[] strInfoLog;
+	}
+	return shader;
+}
 
 void initialise()
 {
@@ -114,11 +202,11 @@ void initialise()
 
 
 //2.generate shaders,then attach them to the program 
-	GLuint shaderVert = Tools::loadShader(GL_VERTEX_SHADER, "TR.vert");
-	GLuint shaderTcs = Tools::loadShader(GL_TESS_CONTROL_SHADER, "TR.tcs");
-	GLuint shaderTes = Tools::loadShader(GL_TESS_EVALUATION_SHADER, "TR.tes");
-	GLuint shaderGeom = Tools::loadShader(GL_GEOMETRY_SHADER, "TR.geom");
-	GLuint shaderFrag = Tools::loadShader(GL_FRAGMENT_SHADER, "TR.frag");
+	GLuint shaderVert = loadShader(GL_VERTEX_SHADER, "TR.vert");
+	GLuint shaderTcs = loadShader(GL_TESS_CONTROL_SHADER, "TR.tcs");
+	GLuint shaderTes = loadShader(GL_TESS_EVALUATION_SHADER, "TR.tes");
+	GLuint shaderGeom = loadShader(GL_GEOMETRY_SHADER, "TR.geom");
+	GLuint shaderFrag = loadShader(GL_FRAGMENT_SHADER, "TR.frag");
 
 	GLuint program = glCreateProgram();
 	glAttachShader(program, shaderVert);
@@ -143,7 +231,8 @@ void initialise()
 
 //3.get the uniform variables of all the shaders(glGetUniformLocation),in order to set value in it(glUniform)
 	//some uniform variables can set value right now,because they are not change during rendering process
-	matrixLoc = glGetUniformLocation(program, "mvpMatrix");
+	mvpMatrix = glGetUniformLocation(program, "mvpMatrix");
+	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.initApply()[0][0]);
 	//uniform variable in vertex shader
 	GLuint minTessLevel = glGetUniformLocation(program, "minTessLevel");
 	glUniform1i(minTessLevel, MIN_TESS_LEVEL);
@@ -179,15 +268,9 @@ void initialise()
 
 //4.change the camera's position with input equipments
 	camera = Camera();
-	glutKeyboardFunc(Camera::keyPressed);
-	glutKeyboardUpFunc(Camera::keyUp);
-	glutSpecialFunc(Camera::specialKeyPressed);
-	glutSpecialUpFunc(Camera::specialKeyUp);
-	glutMotionFunc(Camera::mouseDrag);
+	glutKeyboardFunc(Camera::keyPress);
+	glutKeyboardUpFunc(Camera::keyLoosen);
 	glutPassiveMotionFunc(Camera::mouseMove);
-	glutMouseFunc(Camera::mouseClick);
-	glutMouseWheelFunc(Camera::mouseScroll);// Setup Camera 
-
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -206,25 +289,25 @@ void update(int value)
 void display()
 {
 	//set mvp matrix
-	glUniformMatrix4fv(matrixLoc, 1, GL_FALSE, &camera.apply()[0][0]);
+	glUniformMatrix4fv(mvpMatrix, 1, GL_FALSE, &camera.apply()[0][0]);
 
 	//set camera position
-	glm::vec4 cameraPos = glm::vec4(camera.getPosition(), 0);
+	glm::vec4 cameraPos = glm::vec4(camera.getCameraPosition(), 0);
 	glUniform4fv(cameraCoordinate, 1, &cameraPos[0]);
 
 	//set wireframe mode
-	int wireframeInt = 0;
+	int wireframeFlag = 0;
 	if (camera.getWireFrameMode())
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		wireframeInt = 1;
+		wireframeFlag = 1;
 	}
 	else
 	{
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		wireframeInt = 0;
+		wireframeFlag = 0;
 	}
-	glUniform1i(wireFrameLoc, wireframeInt);
+	glUniform1i(wireFrameLoc, wireframeFlag);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(vaoID);//invoke VAO

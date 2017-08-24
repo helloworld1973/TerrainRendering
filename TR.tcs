@@ -20,8 +20,11 @@ float distanceTL(float distance)
 }//algorithm 1 using the distance from camera vector to a patch 
 
 float slopeDifferentValue(float x, float z, float x2, float z2) 
-{
-	float differentValue=abs((texture(heightMap, vec2(x, z)).r) - (texture(heightMap, vec2(x2, z2)).r)) ;
+{	
+	float heightValue1=texture(heightMap, vec2(x, z)).r;
+	float heightValue2=texture(heightMap, vec2(x2, z2)).r;
+		
+	float differentValue=abs(heightValue1-heightValue2) ;
 	return differentValue;
 	//use texture() to sample the texture's color, first parameter is sampler,second parameter is texture coordinate
 	//.rgba    .r means red color(height value)
@@ -60,7 +63,7 @@ void main()
   vec4 currentPosition = gl_in[gl_InvocationID].gl_Position;//get current vertex
   float TlSlope = slopeTL(currentPosition);
 
-  tessLevel=0.5*TlDiatance+0.5*TlSlope;// weight combination
+  tessLevel=0.4*TlDiatance+0.6*TlSlope;// weight combination
 
 
 	gl_TessLevelOuter[0] = tessLevel;
