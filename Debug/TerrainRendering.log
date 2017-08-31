@@ -1,7 +1,4 @@
 ﻿  Camera.cpp
 d:\vs2015projects\terrainrendering\terrainrendering\camera.cpp(6): warning C4305: “初始化”: 从“double”到“float”截断
-  正在生成代码...
-  正在跳过...(未检测到相关更改)
-  TerrainDraw.cpp
   TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.exe
   TerrainRendering.vcxproj -> D:\VS2015Projects\TerrainRendering\Debug\TerrainRendering.pdb (Full PDB)
